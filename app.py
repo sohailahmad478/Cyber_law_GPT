@@ -18,7 +18,7 @@ from sentence_transformers import SentenceTransformer
 # ============================================================
 
 st.set_page_config(
-    page_title="CyberLawGPT",
+    page_title="Pakistan Cyber Law RAG Assistant",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -30,10 +30,10 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 # IMPORTANT:
 # Put the direct/public PDF download URL in Streamlit Secrets as:
 # Default public source PDF. Override with Streamlit Secret CYBER_LAW_PDF_URL if needed.
-CYBER_LAW_PDF_URL = "https://www.lawsofpakistan.com/wp-content/uploads/2016/07/the-prevention-of-electronic-crime-act-2016.pdf"
+CYBER_LAW_PDF_URL = "https://www.pakistancode.gov.pk/pdffiles/administrator6a061efe0ed5bd153fa8b79b8eb4cba7.pdf"
 #
 # For Colab/local use, you can also set:
-# Default public source PDF: https://www.lawsofpakistan.com/wp-content/uploads/2016/07/the-prevention-of-electronic-crime-act-2016.pdf
+# Default public source PDF: https://www.pakistancode.gov.pk/pdffiles/administrator6a061efe0ed5bd153fa8b79b8eb4cba7.pdf
 #
 # The uploaded PDF is used as the source for the app design, but it is
 # intentionally NOT bundled because the requested GitHub project has only
@@ -305,7 +305,7 @@ with st.sidebar:
     st.header("⚙️ Settings")
 
     api_key = get_secret("GROQ_API_KEY")
-    pdf_url = get_secret("CYBER_LAW_PDF_URL") or "https://www.lawsofpakistan.com/wp-content/uploads/2016/07/the-prevention-of-electronic-crime-act-2016.pdf"
+    pdf_url = get_secret("CYBER_LAW_PDF_URL") or "https://www.pakistancode.gov.pk/pdffiles/administrator6a061efe0ed5bd153fa8b79b8eb4cba7.pdf"
 
     model_name = st.selectbox(
         "Groq model",
