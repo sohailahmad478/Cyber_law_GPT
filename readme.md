@@ -1,4 +1,4 @@
-# ⚖️ Pakistan Cyber Law RAG Assistant
+# ⚖️ CyberlawGPT
 
 A beginner-friendly **Retrieval-Augmented Generation (RAG)** application for asking questions about the Pakistan cyber-law PDF.
 
