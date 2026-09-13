@@ -1,419 +1,324 @@
-# ⚖️ CyberlawGPT
+⚖️ Pakistan Cyber Law AI Assistant — Version-Aware RAG
+A beginner-friendly Retrieval-Augmented Generation (RAG) application for asking questions about Pakistan's cyber law using the official Pakistan Code source.
 
-A beginner-friendly **Retrieval-Augmented Generation (RAG)** application for asking questions about the Pakistan cyber-law PDF.
+The project uses exactly 3 files:
 
-The application uses:
-
-- **Python**
-- **Streamlit**
-- **FAISS** for vector search
-- **Sentence Transformers** (`all-MiniLM-L6-v2`) for embeddings
-- **PyMuPDF** for PDF text extraction
-- **Groq**
-- **`openai/gpt-oss-20b`** for the final answer
-
-The source PDF used to design this application is the provided **Prevention of Electronic Crimes Act, 2016** document.
-
-## Important source limitation
-
-This application is deliberately grounded in the PDF configured through `CYBER_LAW_PDF_URL`.
-
-It should **not** be treated as a complete or automatically up-to-date statement of Pakistani cyber law. If the PDF is an older version, the app will answer from that version.
-
-For real legal matters, consult a qualified lawyer or the appropriate official authority.
-
----
-
-# 1. Project contains only 3 files
-
-```text
 cyber-law-rag/
-│
 ├── app.py
 ├── requirements.txt
 └── readme.md
-```
+🚀 Main improvement
+The earlier version used a fixed PDF and could become outdated.
 
-No FAISS index needs to be committed to GitHub.
+This upgraded version is automatic-update and version-aware:
 
-The app downloads the PDF and creates the embeddings + FAISS index automatically when the application starts.
-
----
-
-# 2. How the RAG pipeline works
-
-```text
-Cyber-law PDF
-     ↓
-Download on startup
-     ↓
-PyMuPDF extracts text page-by-page
-     ↓
-Text is divided into overlapping chunks
-     ↓
-Sentence Transformer creates embeddings
-     ↓
-FAISS stores the vectors
-     ↓
-User asks a question
-     ↓
-Question embedding
-     ↓
-FAISS semantic search
-     ↓
-Top relevant legal passages
-     ↓
+Official Pakistan Code PDF
+          ↓
+Download source
+          ↓
+SHA-256 hash
+          ↓
+Detect amendment/version clues
+          ↓
+If PDF changed → rebuild FAISS
+          ↓
+PyMuPDF
+          ↓
+Chunking
+          ↓
+Sentence Transformers
+          ↓
+FAISS
+          ↓
+User question
+          ↓
+Relevant legal passages
+          ↓
 Groq GPT-OSS 20B
-     ↓
-Answer with PDF page/section references
-```
+          ↓
+Answer + source evidence
+The current official Pakistan Code PDF contains references to the Prevention of Electronic Crimes (Amendment) Act, 2025, including an inserted definition and savings provisions. The app does not invent these changes; it reads the downloaded official source and detects amendment references from its text.
 
-The page information is preserved so the user can inspect the retrieved legal evidence.
+Important: automatic update means the app can detect when the configured PDF changes. It does not guarantee that every Gazette notification, court decision, regulation, or future legal development is represented in that PDF.
 
----
+1. Features
+🔄 Automatic source checking
+When the app starts, it downloads the configured official PDF and calculates a SHA-256 hash.
 
-# 3. Configure the PDF URL
+Example:
 
-Because the requested GitHub repository contains only three files, the PDF itself is **not committed to the repository**.
+PDF hash: a81f29c3e1ab...
+If the PDF changes, its hash changes.
 
-You need a publicly accessible **direct PDF download URL** for the exact cyber-law PDF you want to use.
+The app then rebuilds:
 
-Set:
+PDF → chunks → embeddings → FAISS
+🔄 Manual "Check for updates"
+The sidebar contains:
 
-```text
+🔄 Check for updates
+Click it when you want to force a fresh download.
+
+If nothing changed:
+
+No PDF change detected.
+If the PDF changed:
+
+A new PDF version/change was detected.
+The FAISS knowledge base will be rebuilt.
+📌 Version-aware status
+The application shows:
+
+PDF page count
+
+searchable chunk count
+
+source hash
+
+last checked time
+
+detected amendment references
+
+whether a 2025 PECA amendment reference was found
+
+📚 Evidence
+Each answer can show the retrieved official PDF passages and page numbers.
+
+🧠 RAG
+The application uses:
+
+PyMuPDF — PDF extraction
+
+Sentence Transformers — embeddings
+
+FAISS — semantic search
+
+Groq — final answer
+
+openai/gpt-oss-20b — language model
+
+Streamlit — user interface
+
+2. Official source
+Default source:
+
+https://www.pakistancode.gov.pk/pdffiles/administrator6a061efe0ed5bd153fa8b79b8eb4cba7.pdf
+The application uses this as the default.
+
+You can override it with:
+
 CYBER_LAW_PDF_URL = "YOUR_DIRECT_PUBLIC_PDF_URL"
-```
+The URL must return a PDF directly.
 
-The URL should directly return a PDF file, not an HTML webpage.
+Why Pakistan Code?
+The application uses the official Pakistan Code source rather than the previously used third-party PDF host.
 
----
+Pakistan Code's PECA page identifies the law as the Prevention of Electronic Crimes Act, 2016, and its consolidated PDF includes amendment material.
 
-# 4. Streamlit Cloud deployment
+Pakistan Code also warns that its website content is for information purposes and may be under review, and that users may need to refer to the original Gazette notification when there is doubt. Therefore this application should be treated as a research/educational tool, not a definitive legal-advice system.
 
-Streamlit Community Cloud supports secrets outside your GitHub repository.
+3. Streamlit Cloud deployment
+Step 1 — GitHub
+Create a GitHub repository and upload only:
 
-## Step 1 — Create GitHub repository
-
-Create a repository and upload:
-
-```text
 app.py
 requirements.txt
 readme.md
-```
+Do not upload the PDF.
 
-## Step 2 — Deploy
+Do not upload your Groq API key.
 
-On Streamlit Community Cloud:
+Step 2 — Streamlit
+Deploy the repository and select:
 
-1. Create a new app.
-2. Select your GitHub repository.
-3. Select `app.py` as the main file.
-4. Open **Advanced settings**.
-5. Add the following secrets:
+Main file: app.py
+Step 3 — Secrets
+Open Streamlit's Secrets settings and add:
 
-```toml
 GROQ_API_KEY = "your_groq_api_key"
-CYBER_LAW_PDF_URL = "your_direct_public_pdf_url"
-```
+You do not need CYBER_LAW_PDF_URL if you want to use the default official Pakistan Code source.
 
-Do **not** put the Groq API key directly inside `app.py`.
+If you want to override it:
 
-## Step 3 — Deploy
+GROQ_API_KEY = "your_groq_api_key"
+CYBER_LAW_PDF_URL = "https://example.com/your-direct-pdf.pdf"
+4. Run locally in VS Code
+Open the project folder:
 
-The application will:
+cyber-law-rag/
+├── app.py
+├── requirements.txt
+└── readme.md
+Install:
 
-1. install the packages,
-2. download the PDF,
-3. extract the text,
-4. load the embedding model,
-5. create the FAISS index,
-6. start the cyber-law assistant.
-
-Streamlit recommends storing secrets in its Secrets management rather than committing them to GitHub.
-
----
-
-# 5. Run on Google Colab
-
-The same application can run in Colab.
-
-## Install
-
-```bash
-!pip install -r requirements.txt
-```
-
-Set the environment variables:
-
-```python
-import os
-
-os.environ["GROQ_API_KEY"] = "your_groq_api_key"
-os.environ["CYBER_LAW_PDF_URL"] = "your_direct_public_pdf_url"
-```
-
-Then run:
-
-```bash
-!streamlit run app.py &>/content/streamlit.log &
-```
-
-For a public Colab demo, use your preferred tunneling method such as Cloudflare Tunnel or another supported tunnel.
-
----
-
-# 6. Local Windows / VS Code
-
-Open the project folder in VS Code.
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
-```
+Set the Groq key.
 
-Set environment variables in PowerShell:
+PowerShell:
 
-```powershell
 $env:GROQ_API_KEY="your_groq_api_key"
-$env:CYBER_LAW_PDF_URL="your_direct_public_pdf_url"
-```
+Optional custom PDF:
 
+$env:CYBER_LAW_PDF_URL="https://example.com/your-direct-pdf.pdf"
 Run:
 
-```bash
 streamlit run app.py
-```
+5. Google Colab
+Upload the three files to Colab.
 
----
+Install:
 
-# 7. Groq model
+!pip install -r requirements.txt
+Set the API key:
 
-The application uses:
+import os
+os.environ["GROQ_API_KEY"] = "your_groq_api_key"
+Then run:
 
-```text
-openai/gpt-oss-20b
-```
+!streamlit run app.py &>/content/streamlit.log &
+For a public Colab URL you can use a tunneling method such as Cloudflare Tunnel or another method available in your Colab environment.
 
-This model is available through Groq and supports text generation and reasoning.
+For the easiest deployment, use GitHub + Streamlit Community Cloud.
 
-The app includes a **Response size** control. It controls the requested maximum completion tokens.
+6. What happens when PECA changes?
+Suppose the official PDF changes.
 
-For legal Q&A, the default settings intentionally favor:
+Old source
+SHA-256:
+ABC123...
+New source
+SHA-256:
+XYZ789...
+The application sees:
 
-- low temperature,
-- retrieval from the source PDF,
-- explicit source evidence,
-- conservative answers when evidence is insufficient.
+ABC123 != XYZ789
+Then it rebuilds:
+
+New PDF
+  ↓
+New text
+  ↓
+New chunks
+  ↓
+New embeddings
+  ↓
+New FAISS index
+Therefore the assistant does not continue using the old FAISS index for the new PDF.
+
+7. Important limitation
+This application detects changes to the configured PDF.
+
+It does not automatically search the entire internet for every legal development.
+
+For example, a new:
+
+Gazette notification
+
+amendment
+
+ordinance
+
+court judgment
+
+regulation
+
+government notification
+
+may exist outside the configured PDF.
+
+For a serious legal-research system, the next improvement would be a multi-source architecture:
+
+Pakistan Code
+      +
+Gazette notifications
+      +
+Official amendment documents
+      +
+Official regulations
+      +
+Relevant court decisions
+      ↓
+Versioned legal knowledge base
+      ↓
+RAG
+Do not claim that the system knows every current Pakistani cyber-law development unless those sources are actually included.
+
+8. Questions you can test
+Basic
+What is the Prevention of Electronic Crimes Act 2016?
+What is unauthorized access under PECA?
+What punishment is provided for an offence against dignity?
+Amendment-aware
+Does the current source contain the 2025 PECA amendment?
+What amendment references are present in the current source?
+What is the definition of aspersion in the current PECA source?
+What provisions were changed by the 2025 amendment?
+For the last question, the assistant should answer only from retrieved amendment text. It should not guess.
+
+Version test
+What is the SHA-256 source version currently indexed?
+The assistant UI, not the legal answer, is the authoritative place to see the actual source hash.
+
+9. Legal safety
+The system is intentionally designed not to:
+
+invent sections
+
+invent punishments
+
+silently use an older law
+
+claim unsupported amendments
+
+provide instructions for committing cybercrime
+
+pretend to be a lawyer
+
+If the retrieved source is insufficient, the assistant should say so.
+
+10. Project architecture
+                 ┌─────────────────────────┐
+                 │ Official Pakistan Code  │
+                 │       PDF Source        │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                    Download + SHA-256
+                              │
+                              ▼
+                    Version / amendment
+                       metadata check
+                              │
+                              ▼
+                         PyMuPDF
+                              │
+                              ▼
+                         Chunking
+                              │
+                              ▼
+                    Sentence Transformers
+                              │
+                              ▼
+                           FAISS
+                              │
+             ┌────────────────┴───────────────┐
+             │                                │
+             ▼                                ▼
+       User Question                    Source Evidence
+             │
+             ▼
+        Semantic Search
+             │
+             ▼
+       Relevant passages
+             │
+             ▼
+        Groq GPT-OSS 20B
+             │
+             ▼
+       Legal answer + citations
+11. Final note
+This is an educational/research RAG assistant, not legal advice.
+
+For an actual legal case, verify the provision against the original Gazette notification and obtain advice from a qualified Pakistani lawyer or the appropriate official authority.
 
----
-
-# 8. Features
-
-## Legal question answering
-
-Examples:
-
-```text
-What is unauthorized access?
-
-What is the punishment for unauthorized access under the Act?
-
-What does Section 4 cover?
-
-What is cyber stalking?
-
-What is spoofing?
-
-What is electronic fraud?
-
-What is malicious code?
-
-What are the provisions for unauthorized interception?
-
-What is cyber terrorism?
-
-What powers does an authorized officer have?
-
-How is traffic data retained?
-
-What does the Act say about search and seizure?
-
-What is unlawful online content?
-
-Can compensation be awarded to a victim?
-```
-
-The application retrieves the most relevant passages before generating the answer.
-
-## Retrieval controls
-
-The sidebar provides:
-
-- Response size
-- Temperature
-- Number of retrieved passages
-- Minimum similarity
-- Show retrieved evidence
-- Technical details
-- Clear chat
-
----
-
-# 9. Why FAISS is used
-
-FAISS provides fast similarity search over the embedding vectors.
-
-The application uses normalized embeddings and FAISS inner-product search, which is equivalent to cosine similarity for normalized vectors.
-
-No external vector database is required.
-
----
-
-# 10. Why Sentence Transformers is used
-
-The application uses:
-
-```text
-sentence-transformers/all-MiniLM-L6-v2
-```
-
-This creates compact semantic embeddings that are suitable for semantic search.
-
-The model is downloaded automatically the first time the application needs it.
-
----
-
-# 11. Legal safety design
-
-The prompt intentionally tells the language model:
-
-- use only retrieved legal passages for substantive claims,
-- identify sections when supported,
-- do not invent punishments,
-- distinguish maximum penalties from mandatory penalties,
-- say when the PDF does not provide enough information,
-- do not provide instructions for committing cybercrime,
-- explain that the application is informational rather than legal advice.
-
-This is important because an LLM should not be allowed to freely invent Pakistani legal provisions.
-
----
-
-# 12. Example answer style
-
-For a question such as:
-
-```text
-What is cyber stalking?
-```
-
-the system retrieves the relevant provision and produces an answer based on that evidence, with references such as:
-
-```text
-Under the provided PDF, cyber stalking covers specified repeated
-contact, monitoring, watching/spying, or distributing a person's
-photograph/video without consent in circumstances described by the Act.
-
-Relevant provision: Section 21.
-Source: PDF page 11.
-```
-
-The exact answer is generated from the retrieved passages rather than from a manually written database.
-
----
-
-# 13. Troubleshooting
-
-## Error: GROQ_API_KEY is missing
-
-Add:
-
-```toml
-GROQ_API_KEY = "your_key"
-```
-
-to Streamlit Secrets.
-
-## Error: CYBER_LAW_PDF_URL is missing
-
-Add:
-
-```toml
-CYBER_LAW_PDF_URL = "https://example.com/file.pdf"
-```
-
-Use a direct PDF URL.
-
-## Error: URL did not return a PDF
-
-The URL probably points to a webpage instead of the PDF itself.
-
-Use the actual PDF download URL.
-
-## Error while installing FAISS
-
-Make sure your deployment is using a supported Python version. Streamlit Community Cloud currently defaults to Python 3.12, and the package versions in `requirements.txt` are selected with that environment in mind.
-
-## Slow first startup
-
-This is normal.
-
-The first startup can take time because the app needs to:
-
-1. download the PDF,
-2. download the Sentence Transformer model,
-3. extract PDF text,
-4. generate embeddings,
-5. build the FAISS index.
-
-Streamlit caching prevents the knowledge base from being rebuilt on every interaction during the same app process.
-
----
-
-# 14. Important limitation
-
-This is a **RAG research/education application**, not a legal decision system.
-
-The quality of the answer depends on:
-
-- the configured PDF,
-- PDF text extraction quality,
-- chunking,
-- semantic retrieval,
-- the retrieved evidence,
-- and the language model.
-
-If the required provision is not present in the configured PDF or is not retrieved, the application should say that the available source does not provide enough information instead of inventing an answer.
-
----
-
-# 15. Final deployment checklist
-
-Before deploying:
-
-```text
-[ ] app.py uploaded
-[ ] requirements.txt uploaded
-[ ] readme.md uploaded
-[ ] Groq API key added to Streamlit Secrets
-[ ] Direct PDF URL added to Streamlit Secrets
-[ ] PDF URL opens/downloads a real PDF
-[ ] Streamlit app starts successfully
-[ ] Test Section 3
-[ ] Test Section 21
-[ ] Test spoofing
-[ ] Test electronic fraud
-[ ] Test search/seizure
-[ ] Check retrieved evidence before relying on an answer
-```
-
-## Streamlit Secrets
-
-```toml
-GROQ_API_KEY = "your_groq_api_key"
-CYBER_LAW_PDF_URL = "your_direct_public_pdf_url"
-```
-
-Never commit your Groq API key to GitHub.
